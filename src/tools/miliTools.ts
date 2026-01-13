@@ -152,9 +152,28 @@ export const registerMiliTools = (server: McpServer) => {
           .describe("Target branch name (default: develop)."),
         title: z.string().describe("Title of the PR."),
         description: z.string().optional().describe("Description of the PR."),
+        preview: z.boolean().optional().describe("If true (default), shows the PR details without creating it. Set to false to create."),
       }),
     },
-    async ({ repository, sourceBranch, targetBranch, title, description }) => {
+    async ({ repository, sourceBranch, targetBranch, title, description, preview = true }) => {
+      if (preview) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `[PREVIEW] Create Pull Request
+Repository: ${repository}
+Source Branch: ${sourceBranch}
+Target Branch: ${targetBranch || "develop"}
+Title: ${title}
+Description: ${description || "(none)"}
+
+To create this Pull Request, call this tool again with 'preview: false'.`,
+            },
+          ],
+        };
+      }
+
       const token = process.env.AZURE_DEVOPS_TOKEN || process.env.AZURE_PAT;
 
       if (!token) {
